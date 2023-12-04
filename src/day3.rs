@@ -12,6 +12,7 @@ struct Number {
 struct Symbol {
     x: usize,
     y: usize,
+    sign: char,
 }
 
 fn extract_numbers(input: &str) -> Vec<Number> {
@@ -78,7 +79,11 @@ fn extract_symbols(input: &str) -> Vec<Symbol> {
             .enumerate()
             .for_each(|(x, symbol)| {
                 if symbol != &'.' {
-                    prepared_symbols.push(Symbol { x: x, y: y });
+                    prepared_symbols.push(Symbol {
+                        x: x,
+                        y: y,
+                        sign: *symbol,
+                    });
                 }
             });
     });
@@ -86,13 +91,10 @@ fn extract_symbols(input: &str) -> Vec<Symbol> {
     return prepared_symbols;
 }
 
-pub fn part1(input: &str) -> u32 {
-    let numbers = extract_numbers(input);
-    let symbols = extract_symbols(input);
-
+fn part1(symbols: &Vec<Symbol>, numbers: &Vec<Number>) -> u32 {
     let mut sum = 0;
     for number in numbers {
-        for symbol in &symbols {
+        for symbol in symbols {
             if [symbol.y - 1, symbol.y, symbol.y + 1].contains(&number.y) {
                 if symbol.x - 1 >= number.x_start && symbol.x - 1 <= number.x_end
                     || symbol.x >= number.x_start && symbol.x <= number.x_end
@@ -107,9 +109,43 @@ pub fn part1(input: &str) -> u32 {
     return sum;
 }
 
+fn part2(symbols: &Vec<Symbol>, numbers: &Vec<Number>) -> u32 {
+    let mut sum = 0;
+    let mut numbers_of_symbol: Vec<u32> = Vec::new();
+
+    for symbol in symbols.iter().filter(|symbol| symbol.sign == '*') {
+        numbers_of_symbol.clear();
+        for number in numbers {
+            if [symbol.y - 1, symbol.y, symbol.y + 1].contains(&number.y) {
+                if symbol.x - 1 >= number.x_start && symbol.x - 1 <= number.x_end
+                    || symbol.x >= number.x_start && symbol.x <= number.x_end
+                    || symbol.x + 1 >= number.x_start && symbol.x + 1 <= number.x_end
+                {
+                    if numbers_of_symbol.len() == 2 {
+                        continue;
+                    }
+
+                    numbers_of_symbol.push(number.value);
+                }
+            }
+        }
+
+        if numbers_of_symbol.len() == 2 {
+            sum += numbers_of_symbol.first().expect("First value exists")
+                * numbers_of_symbol.last().expect("Lastvalue exists");
+        }
+    }
+
+    return sum;
+}
+
 pub fn day3() {
     let input: String =
         fs::read_to_string("src/input.txt").expect("Should have been able to read the file");
 
-    println!("{}", part1(&input));
+    let numbers = extract_numbers(&input);
+    let symbols = extract_symbols(&input);
+
+    println!("{}", part1(&symbols, &numbers));
+    println!("{}", part2(&symbols, &numbers));
 }
