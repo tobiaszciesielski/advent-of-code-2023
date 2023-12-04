@@ -36,9 +36,31 @@ fn part1(input: &str) -> u32 {
     return points;
 }
 
+fn part2(input: &str) -> u32 {
+    let mut cards = vec![1; input.lines().count()];
+
+    let mut i = 1;
+    input
+        .lines()
+        .map(|line| line.get(9..).expect("Failed to trim"))
+        .map(|line| line.split(" | ").collect())
+        .for_each(|numbers: Vec<&str>| {
+            let winning: HashSet<u32> = parse_numbers(numbers.first().expect("First item exists"));
+            let found: HashSet<u32> = parse_numbers(numbers.last().expect("Last item exists"));
+
+            for x in i..(i + winning.intersection(&found).count()) {
+                cards[x] += cards[i - 1];
+            }
+            i += 1;
+        });
+
+    return cards.iter().sum();
+}
+
 pub fn day4() {
     let input: String =
         fs::read_to_string("src/input.txt").expect("Should have been able to read the file");
 
     println!("{}", part1(&input));
+    println!("{}", part2(&input));
 }
